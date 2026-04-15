@@ -8,8 +8,8 @@ from src.shared.security import (
 )
 from src.shared.messaging import RabbitMQHandler
 
-PRIVATE_KEY_PATH = "key/promocao_private_key.pem"
-GATEWAY_PUBLIC_KEY_PATH = "key_gateway_public_key.pem"
+PRIVATE_KEY_PATH = "keys/promocao_private_key.pem"
+GATEWAY_PUBLIC_KEY_PATH = "keys/gateway_public_key.pem"
 
 private_key = load_private_key(PRIVATE_KEY_PATH)
 gateway_public_key = load_public_key(GATEWAY_PUBLIC_KEY_PATH)
@@ -37,7 +37,7 @@ def process_received_promotion(ch, method, properties, body):
 if __name__ == "__main__":
     print("[*] Iniciando Microsserviço Promocao...")
     queue_name = broker.declare_queue()
-    broker.bind_keys(queue_name, ["promotion.recebida"])
+    broker.bind_keys(queue_name, ["promocao.recebida"])
 
     try:
         broker.start_consuming(queue_name, process_received_promotion)
