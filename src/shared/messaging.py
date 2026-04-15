@@ -11,7 +11,7 @@ class RabbitMQHandler():
 
     def establish_connection(self):
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=self.host))
+            pika.ConnectionParameters(host=self.host, heartbeat=0))
         self.channel = self.connection.channel()
 
         self.channel.exchange_declare(
