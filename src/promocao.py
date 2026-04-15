@@ -24,8 +24,6 @@ def process_received_promotion(ch, method, properties, body):
         event_data = verify_and_extract_envelope(envelope, gateway_public_key)
         print(f"\nAssinatura do gateway validada. Processando promoção: {event_data['produto']}")
 
-        event_data['status'] = 'validado'
-
         new_envelope = create_signed_envelope(event_data, private_key)
         routing_key = "promocao.publicada"
         broker.publish_message(routing_key, new_envelope)

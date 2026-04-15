@@ -1,9 +1,9 @@
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
-KEY_NAME = "notificacao"
-PRIVATE_KEY_FILE = f"keys/{KEY_NAME}_private.pem"
-PUBLIC_KEY_FILE = f"keys/{KEY_NAME}_public.pem"
+KEY_NAME = "promocao"
+PRIVATE_KEY_FILE = f"keys/{KEY_NAME}_private_key.pem"
+PUBLIC_KEY_FILE = f"keys/{KEY_NAME}_public_key.pem"
 
 private_key = ed25519.Ed25519PrivateKey.generate()
 public_key = private_key.public_key()
