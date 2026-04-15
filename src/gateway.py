@@ -1,27 +1,72 @@
+import json
 import sys
 import uuid
-from src.shared.security import load_private_key, create_signed_envelope
+import threading
+import time
+from cryptography.exceptions import InvalidSignature
+from src.shared.security import (
+    load_private_key,
+    load_public_key,
+    verify_and_extract_envelope,
+    create_signed_envelope
+)
 from src.shared.messaging import RabbitMQHandler
 
 PRIVATE_KEY_PATH = "keys/gateway_private_key.pem"
+PROMOCAO_PUBLIC_KEY_PATH = "keys/promocao_public_key.pem"
+
 private_key = load_private_key(PRIVATE_KEY_PATH)
+promocao_public_key = load_public_key(PROMOCAO_PUBLIC_KEY_PATH)
 
-broker = RabbitMQHandler()
-broker.establish_connection()
+promocoes_publicadas = {}
 
+publisher_broker = RabbitMQHandler()
+publisher_broker.establish_connection()
+
+# --- Thread do Consunidor ---
+def consumer():
+    consumer_broker = RabbitMQHandler()
+    consumer_broker.establish_connection()
+    queue_name = consumer_broker.declare_queue()
+
+    consumer_broker.bind_keys(queue_name, ["promocao.publicada"])
+
+    def callback(ch, method, properties, body):
+        try:
+            envelope = json.loads(body)
+            event_data = verify_and_extract_envelope(envelope, promocao_public_key)
+            
+            promocao_id = event_data['id']
+            promocoes_publicadas[promocao_id] = event_data
+        
+        except InvalidSignature:
+            print("\n[!] Promoção publicada com assinatura inválida. Descartando.")
+        except Exception as e:
+            print(f"\n[!] Erro ao validar envelope: {e}")
+    
+    consumer_broker.start_consuming(queue_name, callback)
+
+consumer_thread = threading.Thread(target=consumer, daemon=True)
+consumer_thread.start()
+
+# --- Meu Principal ---
 def menu():
+    time.sleep(0.5)
     while True:
         print("\n=== Sistema de Promoções - Gateway ===")
         print("1. Cadastrar uma nova promoção")
-        print("2. Sair")
+        print("2. Listar as promoções publicadas")
+        print("3. Sair")
 
         choice = input("Selecione uma opção: ")
 
         if choice == '1':
             register_promotion()
         elif choice == '2':
+            list_promotions()
+        elif choice == '3':
             print("Fechando a conexão...")
-            broker.close_connection()
+            publisher_broker.close_connection()
             sys.exit(0)
         else:
             print("Opção inválida. Tente novamente")
@@ -43,15 +88,24 @@ def register_promotion():
     envelope = create_signed_envelope(event_data, private_key)
 
     routing_key = "promocao.recebida"
-    broker.publish_message(routing_key, envelope)
+    publisher_broker.publish_message(routing_key, envelope)
 
     print(f"\n[+] Promoção para '{product_name}' recebida!")
+
+def list_promotions():
+    print("\n--- Promoções Publicadas ---")
+    if not promocoes_publicadas:
+        print("Nenhuma promoção foi publicada ainda")
+        return
+    
+    for id, promocao in promocoes_publicadas.items():
+        print(f"- {promocao['produto']} ({promocao['categoria']}) : {promocao['preco']}R$")
 
 if __name__ == "__main__":
     try:
         menu()
     except KeyboardInterrupt:
         print("\nAbortando...")
-        broker.close_connection()
+        publisher_broker.close_connection()
         sys.exit(0)
 
