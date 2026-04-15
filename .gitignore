@@ -1,5 +1,5 @@
 # Chaves privadas
-chaves/*private*.pem
+keys/*private*.pem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
