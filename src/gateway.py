@@ -55,8 +55,9 @@ def menu():
     while True:
         print("\n=== Sistema de Promoções - Gateway ===")
         print("1. Cadastrar uma nova promoção")
-        print("2. Listar as promoções publicadas")
-        print("3. Sair")
+        print("2. Listar as promoções")
+        print("3. Votar nas promoções")
+        print("4. Sair")
 
         choice = input("Selecione uma opção: ")
 
@@ -65,6 +66,8 @@ def menu():
         elif choice == '2':
             list_promotions()
         elif choice == '3':
+            vote_on_promotions()
+        elif choice == '4':
             print("Fechando a conexão...")
             publisher_broker.close_connection()
             sys.exit(0)
@@ -98,8 +101,59 @@ def list_promotions():
         print("Nenhuma promoção foi publicada ainda")
         return
     
-    for id, promocao in promocoes_publicadas.items():
-        print(f"- {promocao['produto']} ({promocao['categoria']}) : {promocao['preco']}R$")
+    for id, promo in promocoes_publicadas.items():
+        print(f"- {promo['produto']} ({promo['categoria']}) : {promo['preco']}R$")
+
+def vote_on_promotions():
+    while True:
+        print("\n--- Vote em uma Promoção---")
+        if not promocoes_publicadas:
+            print("Nenhuma promoção foi publicada ainda")
+            return
+        
+        promo_list = list(promocoes_publicadas.items())
+        for i, (promo_id, promo) in enumerate(promo_list, start=1):
+            print(f"{i}. {promo['produto']} ({promo['categoria']}) : {promo['preco']}R$")
+        
+        print("0. Retornar ao menu principal")
+        print("-"*30)
+
+        choice = input("Digite o número da promoção escolhida: ").strip()
+        
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("[!] Seleção inválida. Tente novamente.")
+            continue
+        
+        if choice == 0:
+            return
+        elif choice < 0 or choice > len(promo_list):
+            print("[!] Número inválido. Tente novamente.")
+            continue
+
+        promo_id = promo_list[choice-1][0]
+        product_name = promo_list[choice-1][1]['produto']
+
+        vote = input(f"Votando em '{product_name}' (+1 para positivo, -1 para negativo, 0 para cancelar): ").strip()
+        if vote == '0':
+            continue
+        if vote not in ['+1', '-1']:
+            print("[!] Voto inválido. Tente novamente")
+            continue
+
+        event_data = {
+            "id": promo_id,
+            "voto": int(vote),
+        }
+
+        envelope = create_signed_envelope(event_data, private_key)
+        publisher_broker.publish_message("promocao.voto", envelope)
+
+        print(f"[+] Voto {vote} submetido para '{product_name}'.")
+        time.sleep(0.5)
+    
+
 
 if __name__ == "__main__":
     try:
