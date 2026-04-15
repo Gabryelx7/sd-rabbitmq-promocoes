@@ -145,7 +145,9 @@ def vote_on_promotions():
         event_data = {
             "id": promo_id,
             "categoria": promo['categoria'],
-            "voto": int(vote),
+            "produto": promo['produto'],
+            "preco": promo['preco'],
+            "voto": int(vote)
         }
 
         envelope = create_signed_envelope(event_data, private_key)

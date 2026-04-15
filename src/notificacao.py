@@ -24,9 +24,9 @@ def process_event(ch, method, properties, body):
             
             public_routing_key = f"promocao.{category}"
             public_message = {
-                "titulo": "Nova Promoção!",
-                "produto": event_data['produto'],
-                "preco": event_data['preco']
+                "Título": "Nova Promoção!",
+                "Produto": event_data['produto'],
+                "Preço": event_data['preco']
             }
             broker.publish_message(public_routing_key, public_message)
             print(f"[+] Nova promoção {category} encaminhada para {public_routing_key}")
@@ -34,15 +34,15 @@ def process_event(ch, method, properties, body):
         elif incoming_routing_key == "promocao.destaque":
             event_data = verify_and_extract_envelope(envelope, ranking_public_key)
             
-            promo_id = event_data['id']
             category = event_data['categoria']
             score = event_data['pontuacao']
             
             public_routing_key = f"promocao.{category}"
             public_message = {
-                "title": "HOT DEAL",
-                "mensagem": f"Uma promoção da categoria {category} está em alta com {score} votos!",
-                "promo_id": promo_id
+                "Título": "HOT DEAL",
+                "Mensagem": f"Uma promoção da categoria {category} está em alta com {score} votos!",
+                "Produto": event_data['produto'],
+                "Preço": event_data['preco']
             }
             broker.publish_message(public_routing_key, public_message)
             print(f"[*] Promoção Hot Deal {category} encaminhada para {public_routing_key}")
