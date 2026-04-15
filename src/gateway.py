@@ -144,6 +144,7 @@ def vote_on_promotions():
 
         event_data = {
             "id": promo_id,
+            "categoria": promo['categoria'],
             "voto": int(vote),
         }
 

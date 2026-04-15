@@ -44,6 +44,7 @@ def process_vote(ch, method, properties, body):
             
             hot_deal_data = {
                 "id": promo_id,
+                "categoria": event_data['categoria'],
                 "pontuacao": new_score
             }
             

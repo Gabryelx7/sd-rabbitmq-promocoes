@@ -38,7 +38,7 @@ def process_event(ch, method, properties, body):
             category = event_data['categoria']
             score = event_data['pontuacao']
             
-            public_routing_key = f"promocao.hotdeal.{category}"
+            public_routing_key = f"promocao.{category}"
             public_message = {
                 "title": "HOT DEAL",
                 "mensagem": f"Uma promoção da categoria {category} está em alta com {score} votos!",
