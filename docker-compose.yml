@@ -1,4 +1,3 @@
-# docker-compose.yml
 services:
   rabbitmq:
     image: rabbitmq:4-management
